@@ -2,6 +2,7 @@ const net = require('net');
 const { parseGT06Message } = require('./gt06Parser');
 const db = require('../config/db');
 const { v4: uuidv4 } = require('uuid'); // Import the UUID package
+const { Console } = require('console');
 
 // Create TCP server
 const tcpServer = net.createServer((socket) => {
@@ -19,16 +20,20 @@ const tcpServer = net.createServer((socket) => {
                 // Handle data based on the parsed message type
                 switch (parsedMessage.type) {
                     case 'location':
-                        await saveLocationData(parsedMessage);
+                        Console.log('Location Data:', parsedMessage);
+                        // await saveLocationData(parsedMessage);
                         break;
                     case 'alarm':
-                        await saveAlarmData(parsedMessage);
+                        Console.log('Alarm Data:', parsedMessage);
+                        // await saveAlarmData(parsedMessage);
                         break;
                     case 'heartbeat':
-                        await saveHeartbeatData(parsedMessage);
+                        Console.log('HeartBeat Data:', parsedMessage);
+                        // await saveHeartbeatData(parsedMessage);
                         break;
                     case 'status':
-                        await saveStatusData(parsedMessage);
+                        Console.log('Status Data:', parsedMessage);
+                        // await saveStatusData(parsedMessage);
                         break;
                     default:
                         console.error(`Unknown message type: ${parsedMessage.type}`);
