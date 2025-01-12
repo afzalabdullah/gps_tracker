@@ -6,16 +6,16 @@ const { Console } = require('console');
 
 // Create TCP server
 const tcpServer = net.createServer((socket) => {
-    console.log('Device connected:', socket.remoteAddress);
+    Console.log('Device connected:', socket.remoteAddress);
 
     socket.on('data', async (data) => {
-        console.log('Raw Data:', data.toString('hex'));
+        Console.log('Raw Data:', data.toString('hex'));
 
         try {
             const parsedMessage = parseGT06Message(data);
 
             if (parsedMessage) {
-                console.log('Parsed Message:', parsedMessage);
+                Console.log('Parsed Message:', parsedMessage);
 
                 // Handle data based on the parsed message type
                 switch (parsedMessage.type) {
@@ -42,7 +42,7 @@ const tcpServer = net.createServer((socket) => {
                 // Send an acknowledgment if required
                 if (parsedMessage.ack) {
                     socket.write(Buffer.from(parsedMessage.ack, 'hex'));
-                    console.log('Acknowledgment sent:', parsedMessage.ack);
+                    Console.log('Acknowledgment sent:', parsedMessage.ack);
                 }
             }
         } catch (error) {
@@ -51,7 +51,7 @@ const tcpServer = net.createServer((socket) => {
     });
 
     socket.on('end', () => {
-        console.log('Device disconnected:', socket.remoteAddress);
+        Console.log('Device disconnected:', socket.remoteAddress);
     });
 
     socket.on('error', (err) => {
@@ -153,7 +153,7 @@ const saveStatusData = async (data) => {
 // Start the TCP server
 const startTcpServer = (port = 5000) => {
     tcpServer.listen(port, () => {
-        console.log(`TCP Server listening on port ${port}`);
+        Console.log(`TCP Server listening on port ${port}`);
     });
 };
 

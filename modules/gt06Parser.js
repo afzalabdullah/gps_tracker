@@ -59,36 +59,29 @@ const parseGT06Message = (buffer) => {
 
     return parsedData;
 };
-
 const parseLatitude = (hex) => {
     const decimal = parseInt(hex, 16);
-    let latitude = (decimal / 30000) - 90; // Adjusted formula for latitude conversion
-    if (latitude < -90) latitude = -90;
-    if (latitude > 90) latitude = 90;
-    return latitude.toFixed(6); // Truncate to 6 digits after decimal point and return as string
+    return (decimal / 300000.0).toFixed(6);
 };
 
 const parseLongitude = (hex) => {
     const decimal = parseInt(hex, 16);
-    let longitude = (decimal / 30000) - 180; // Adjusted formula for longitude conversion
-    if (longitude < -180) longitude = -180;
-    if (longitude > 180) longitude = 180;
-    return longitude.toFixed(6); // Truncate to 6 digits after decimal point and return as string
+    return (decimal / 300000.0).toFixed(6);
 };
 
 const parseTimestamp = (hex) => {
-    const timestampHex = hex.substring(0, 8);
-    const timestamp = parseInt(timestampHex, 16);
-    return new Date(timestamp * 1000); // Assuming timestamp is in seconds
+    const year = parseInt(hex.substring(0, 2), 16) + 2000;
+    const month = parseInt(hex.substring(2, 4), 16);
+    const day = parseInt(hex.substring(4, 6), 16);
+    const hour = parseInt(hex.substring(6, 8), 16);
+    const minute = parseInt(hex.substring(8, 10), 16);
+    const second = parseInt(hex.substring(10, 12), 16);
+
+    return new Date(Date.UTC(year, month - 1, day, hour, minute, second));
 };
 
-const parseSpeed = (hex) => {
-    return parseInt(hex, 16);
-};
-
-const parseDirection = (hex) => {
-    return parseInt(hex, 16);
-};
+const parseSpeed = (hex) => parseInt(hex, 16);
+const parseDirection = (hex) => parseInt(hex, 16);
 
 const parseAltitude = (hex) => {
     return parseInt(hex, 16);
@@ -99,7 +92,6 @@ const parseStatus = (hex) => {
         '0000': 'Normal',
         '0001': 'Low Battery',
         '0002': 'Power Cut',
-        // Add more status codes as needed
     };
     return statusCodes[hex] || 'Unknown';
 };
