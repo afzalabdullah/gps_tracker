@@ -21,23 +21,21 @@ const parseGT06Message = (buffer) => {
 
         case '12': // GPS Location Data
             parsedData.type = 'location';
-            parsedData.deviceId = parseDeviceId(hexString.substring(8, 24));
-            parsedData.dateTime = parseDateTime(hexString.substring(14, 26));
-            parsedData.satelliteInfo = hexString.substring(26, 28);
-            parsedData.latitude = parseLatitude(hexString.substring(28, 36));
-            parsedData.longitude = parseLongitude(hexString.substring(36, 44));
-            parsedData.speed = parseSpeed(hexString.substring(44, 46));
-            parsedData.direction = parseDirection(hexString.substring(46, 50));
-            parsedData.mcc = parseInt(hexString.substring(50, 54), 16);
-            parsedData.mnc = parseInt(hexString.substring(54, 56), 16);
-            parsedData.lac = parseInt(hexString.substring(56, 60), 16);
-            parsedData.cellId = parseInt(hexString.substring(60, 66), 16);
-            parsedData.serialNumber = hexString.substring(66, 70);
+            parsedData.dateTime = parseDateTime(hexString.substring(8, 20));
+            parsedData.satelliteInfo = parseSatelliteInfo(hexString.substring(20, 22));
+            parsedData.latitude = parseLatitude(hexString.substring(22, 30));
+            parsedData.longitude = parseLongitude(hexString.substring(30, 38));
+            parsedData.speed = parseSpeed(hexString.substring(38, 40));
+            parsedData.courseStatus = parseCourseStatus(hexString.substring(40, 44));
+            parsedData.mcc = parseInt(hexString.substring(44, 48), 16);
+            parsedData.mnc = parseInt(hexString.substring(48, 50), 16);
+            parsedData.lac = parseInt(hexString.substring(50, 54), 16);
+            parsedData.cellId = parseInt(hexString.substring(54, 60), 16);
+            parsedData.serialNumber = hexString.substring(60, 64);
             break;
 
         case '13': // Status Information
             parsedData.type = 'status';
-            parsedData.deviceId = parseDeviceId(hexString.substring(8, 24));
             parsedData.terminalInfo = parseTerminalInfo(hexString.substring(24, 26));
             parsedData.voltageLevel = parseVoltageLevel(hexString.substring(26, 28));
             parsedData.gsmSignalStrength = parseGsmSignalStrength(hexString.substring(28, 30));
@@ -47,20 +45,32 @@ const parseGT06Message = (buffer) => {
 
         case '16': // Heartbeat Packet
             parsedData.type = 'heartbeat';
-            parsedData.deviceId = parseDeviceId(hexString.substring(8, 24));
-            parsedData.voltageLevel = parseVoltageLevel(hexString.substring(24, 26));
-            parsedData.gsmSignalStrength = parseGsmSignalStrength(hexString.substring(26, 28));
-            parsedData.serialNumber = hexString.substring(28, 32);
+            parsedData.terminalInfo = parseTerminalInfo(hexString.substring(8, 10));
+            parsedData.voltageLevel = parseVoltageLevel(hexString.substring(10, 12));
+            parsedData.gsmSignalStrength = parseGsmSignalStrength(hexString.substring(12, 14));
+            parsedData.alarmStatus = parseAlarmStatus(hexString.substring(14, 16));
+            parsedData.language = parseLanguage(hexString.substring(16, 18));
+            parsedData.serialNumber = hexString.substring(18, 22);
             break;
 
         case '18': // Alarm Data
             parsedData.type = 'alarm';
-            parsedData.deviceId = parseDeviceId(hexString.substring(8, 24));
-            parsedData.alarmType = parseAlarmType(hexString.substring(24, 26));
-            parsedData.latitude = parseLatitude(hexString.substring(26, 34));
-            parsedData.longitude = parseLongitude(hexString.substring(34, 42));
-            parsedData.timestamp = parseDateTime(hexString.substring(42, 50));
-            parsedData.serialNumber = hexString.substring(50, 54);
+            parsedData.dateTime = parseDateTime(hexString.substring(8, 20));
+            parsedData.satelliteInfo = parseInt(hexString.substring(20, 22), 16);
+            parsedData.latitude = parseLatitude(hexString.substring(22, 30));
+            parsedData.longitude = parseLongitude(hexString.substring(30, 38));
+            parsedData.speed = parseSpeed(hexString.substring(38, 40));
+            parsedData.direction = parseDirection(hexString.substring(40, 44));
+            parsedData.mcc = parseInt(hexString.substring(44, 48), 16);
+            parsedData.mnc = parseInt(hexString.substring(48, 50), 16);
+            parsedData.lac = parseInt(hexString.substring(50, 54), 16);
+            parsedData.cellId = parseInt(hexString.substring(54, 60), 16);
+            parsedData.terminalInfo = parseTerminalInfo(hexString.substring(60, 62));
+            parsedData.voltageLevel = parseVoltageLevel(hexString.substring(62, 64));
+            parsedData.gsmSignalStrength = parseGsmSignalStrength(hexString.substring(64, 66));
+            parsedData.alarmStatus = parseAlarmStatus(hexString.substring(66, 68));
+            parsedData.language = parseLanguage(hexString.substring(68, 70));
+            parsedData.serialNumber = hexString.substring(70, 74);
             break;
 
         case '80': // Command Response
@@ -71,7 +81,9 @@ const parseGT06Message = (buffer) => {
             break;
 
         default:
-            throw new Error(`Unknown protocol number: ${protocolNumber}`);
+            parsedData.type = 'unknown';
+            parsedData.messageContent = hexString.substring(8, hexString.length - 8); // Skip CRC and stop bits
+            break;
     }
 
     // Parse CRC and stop bits
@@ -83,8 +95,8 @@ const parseGT06Message = (buffer) => {
 
 // Utility Functions
 const parseDeviceId = (hex) => {
-    // Converts the 8-byte hex IMEI to readable format
-    return hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)).join('');
+    // Parse IMEI (8 bytes in BCD format)
+    return hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16).toString(10).padStart(2, '0')).join('');
 };
 
 const parseDateTime = (hex) => {
@@ -98,19 +110,36 @@ const parseDateTime = (hex) => {
     return new Date(Date.UTC(year, month - 1, day, hour, minute, second));
 };
 
+const parseSatelliteInfo = (hex) => {
+    const length = parseInt(hex.substring(0, 1), 16);
+    const satellites = parseInt(hex.substring(1, 2), 16);
+    return { length, satellites };
+};
+
 const parseLatitude = (hex) => {
     const decimal = parseInt(hex, 16);
-    return (decimal / 300000.0).toFixed(6); // GPS latitudes are scaled by 300,000
+    return (decimal / 300000.0).toFixed(6); // Latitude scaling
 };
 
 const parseLongitude = (hex) => {
     const decimal = parseInt(hex, 16);
-    return (decimal / 300000.0).toFixed(6); // GPS longitudes are scaled by 300,000
+    return (decimal / 300000.0).toFixed(6); // Longitude scaling
 };
 
 const parseSpeed = (hex) => parseInt(hex, 16);
 
-const parseDirection = (hex) => parseInt(hex, 16);
+const parseCourseStatus = (hex) => {
+    const byte1 = parseInt(hex.substring(0, 2), 16).toString(2).padStart(8, '0');
+    const byte2 = parseInt(hex.substring(2, 4), 16);
+
+    return {
+        gpsRealTime: byte1[2] === '1',
+        gpsPositioned: byte1[3] === '1',
+        eastLongitude: byte1[4] === '0',
+        northLatitude: byte1[5] === '1',
+        course: byte2
+    };
+};
 
 const parseTerminalInfo = (hex) => {
     const binary = parseInt(hex, 16).toString(2).padStart(8, '0');
@@ -136,18 +165,22 @@ const parseGsmSignalStrength = (hex) => {
 
 const parseAlarmStatus = (hex) => {
     const alarms = {
+        '00': 'Normal',
         '01': 'SOS',
-        '02': 'Overspeed',
-        '03': 'Power Cut',
-        '04': 'Shock',
-        '05': 'Geofence Breach',
-        '06': 'Low Battery',
-        '07': 'Fence In',
-        '08': 'Fence Out',
+        '02': 'Power Cut',
+        '03': 'Shock',
+        '04': 'Fence In',
+        '05': 'Fence Out',
     };
     return alarms[hex] || 'Unknown';
 };
 
-const parseAlarmType = parseAlarmStatus;
+const parseLanguage = (hex) => {
+    const languages = {
+        '01': 'Chinese',
+        '02': 'English'
+    };
+    return languages[hex] || 'Unknown';
+};
 
 module.exports = { parseGT06Message };

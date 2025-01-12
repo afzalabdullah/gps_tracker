@@ -1,11 +1,24 @@
-const mysql = require('mysql2/promise');
-require('dotenv').config();
+require('dotenv').config();  // Load the .env file first
+const mongoose = require('mongoose');
+const uri = process.env.MONGO_URI;
 
-const db = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-});
+const connectDB = async () => {
+    try {
+        if (!uri) {
+            console.error("MongoDB URI not defined. Please check your .env file.");
+            return;
+        }
 
-module.exports = db;
+        await mongoose.connect(uri, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+
+        console.log('Connected to MongoDB');
+    } catch (error) {
+        console.error('Could not connect to MongoDB:', error.message);
+        throw error;
+    }
+};
+
+module.exports = connectDB;
