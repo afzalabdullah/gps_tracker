@@ -2,7 +2,6 @@ const net = require('net');
 const { parseGT06Message } = require('./gt06Parser');
 const db = require('../config/db');
 const { v4: uuidv4 } = require('uuid'); // Import the UUID package
-const { Console } = require('console');
 
 // Create TCP server
 const tcpServer = net.createServer((socket) => {
@@ -17,7 +16,6 @@ const tcpServer = net.createServer((socket) => {
             if (parsedMessage) {
                 console.log('Parsed Message:', parsedMessage);
 
-                // Handle data based on the parsed message type
                 switch (parsedMessage.type) {
                     case 'location':
                         console.log('Location Data:', parsedMessage);
