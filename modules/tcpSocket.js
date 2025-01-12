@@ -6,33 +6,33 @@ const { Console } = require('console');
 
 // Create TCP server
 const tcpServer = net.createServer((socket) => {
-    Console.log('Device connected:', socket.remoteAddress);
+    console.log('Device connected:', socket.remoteAddress);
 
     socket.on('data', async (data) => {
-        Console.log('Raw Data:', data.toString('hex'));
+        console.log('Raw Data:', data.toString('hex'));
 
         try {
             const parsedMessage = parseGT06Message(data);
 
             if (parsedMessage) {
-                Console.log('Parsed Message:', parsedMessage);
+                console.log('Parsed Message:', parsedMessage);
 
                 // Handle data based on the parsed message type
                 switch (parsedMessage.type) {
                     case 'location':
-                        Console.log('Location Data:', parsedMessage);
+                        console.log('Location Data:', parsedMessage);
                         // await saveLocationData(parsedMessage);
                         break;
                     case 'alarm':
-                        Console.log('Alarm Data:', parsedMessage);
+                        console.log('Alarm Data:', parsedMessage);
                         // await saveAlarmData(parsedMessage);
                         break;
                     case 'heartbeat':
-                        Console.log('HeartBeat Data:', parsedMessage);
+                        console.log('HeartBeat Data:', parsedMessage);
                         // await saveHeartbeatData(parsedMessage);
                         break;
                     case 'status':
-                        Console.log('Status Data:', parsedMessage);
+                        console.log('Status Data:', parsedMessage);
                         // await saveStatusData(parsedMessage);
                         break;
                     default:
@@ -42,7 +42,7 @@ const tcpServer = net.createServer((socket) => {
                 // Send an acknowledgment if required
                 if (parsedMessage.ack) {
                     socket.write(Buffer.from(parsedMessage.ack, 'hex'));
-                    Console.log('Acknowledgment sent:', parsedMessage.ack);
+                    console.log('Acknowledgment sent:', parsedMessage.ack);
                 }
             }
         } catch (error) {
@@ -51,7 +51,7 @@ const tcpServer = net.createServer((socket) => {
     });
 
     socket.on('end', () => {
-        Console.log('Device disconnected:', socket.remoteAddress);
+        console.log('Device disconnected:', socket.remoteAddress);
     });
 
     socket.on('error', (err) => {
@@ -153,7 +153,7 @@ const saveStatusData = async (data) => {
 // Start the TCP server
 const startTcpServer = (port = 5000) => {
     tcpServer.listen(port, () => {
-        Console.log(`TCP Server listening on port ${port}`);
+        console.log(`TCP Server listening on port ${port}`);
     });
 };
 
